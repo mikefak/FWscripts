@@ -1,11 +1,26 @@
 #!/bin/bash
 
-#IPTABLES Simplified - created by @mikeffakhouri
+#IPTABLES Simplified - created by @mikefak
 #must be ran with sudo permissions, ideal for servers looking to establish basic firewall rules with iptables along with other easy access methods of the utility.
-#Version 1.0
+#Version 1.1
 
 #Info collection and iptaples implementation
-function fwsetup() {
+
+#Check for root privs
+uid=$(id -u)
+if [[ $uid -ne 0 ]];
+then
+    echo "Please run as root and try again"
+    exit
+fi
+
+function fwsetup () {
+
+    echo test
+            
+}
+
+function fwautosetup() {
 
 	#Gathers active listening ports then print output into portnums file
 
