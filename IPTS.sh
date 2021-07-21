@@ -1,11 +1,63 @@
 #!/bin/bash
 
-#IPTABLES Simplified - created by @mikeffakhouri
+#IPTABLES Simplified - created by @mikefak
 #must be ran with sudo permissions, ideal for servers looking to establish basic firewall rules with iptables along with other easy access methods of the utility.
-#Version 1.0
+#Version 1.1
 
 #Info collection and iptaples implementation
-function fwsetup() {
+
+#Check for root privs
+uid=$(id -u)
+if [[ $uid -ne 0 ]];
+then
+    echo "Please run as root and try again"
+    exit
+fi
+
+function fwsetup () {
+
+    read -p "Please select an option for firewall configuration" dec
+	
+	while true; do
+
+		case $dec in
+
+			1) 
+				#option 1, ecomm (20, 21, 80, 443 incoming/outgoing s/d ports, 22 outgoing  )
+				echo "opt1"
+				;;
+			
+			2)
+				#option 2, database (ssh, )
+				echo "opt2"
+				;;
+
+			3)
+				#option 3, autosetup
+				echo "opt3"
+				;;
+			
+			4)
+				#custom
+				echo "opt4"
+				;;
+		esac
+	done
+            
+}
+
+function ecomm() {
+
+	echo "ecomm funct"
+}
+
+function database () {
+
+	echo "database funct"
+}
+
+
+function fwautosetup() {
 
 	#Gathers active listening ports then print output into portnums file
 
@@ -35,13 +87,52 @@ function fwsetup() {
 				done < portnums
 				returning
 				rm portnums
-
 				break;;
 
 			n) 
 				break;;
 
 			*) echo 'Invalid entry '$yn 
+				returning
+				break;;
+		esac
+	done
+
+}
+
+#inet/nonet function
+function inetnonet () {
+
+	dnsresolv=$(grep nameserver /etc/resolv.conf | awk '{print$2}')
+
+	read -p "Internet access will be accepted/dropped through the firewall in accordance to the dns resolver (accept/drop)" ac 
+	while true; do
+
+		case $ac in 
+
+			accept) 
+
+					iptables -I INPUT -p udp --sport 53 -s $dnsresolv -j ACCEPT
+					iptables -I OUTPUT -p udp --dport 53 -d $dnsresolv -j ACCEPT
+
+					iptables -I INPUT -p tcp -m multiport --sports 80,443 -j ACCEPT
+					iptables -I OUTPUT -p tcp -m multiport --dports 80,443 -j ACCEPT
+
+					returning
+					break;;
+			
+			drop)
+					iptables -D INPUT -p udp --sport 53 -s $dnsresolv -j ACCEPT
+					iptables -D OUTPUT -p udp --dport 53 -d $dnsresolv -j ACCEPT
+
+					iptables -D INPUT -p tcp -m multiport --sports 80,443 -j ACCEPT
+					iptables -D OUTPUT -p tcp -m multiport --dports 80,443 -j ACCEPT
+		
+					returning
+					break;;
+
+			*) 
+				echo "Please enter a valid entry"
 		esac
 	done
 
@@ -67,7 +158,9 @@ function delete() {
 				break;;
 
 			*)
-				echo 'Invalid entry' $dec''
+				echo 'Invalid entry' $dec
+				returning
+				break;;
 		esac
 	done
 
@@ -126,7 +219,9 @@ function trafficstat() {
 					returning 
 					break;;
 			*)
-				echo 'Invlaid entry' $acyn
+				echo 'Invalid entry, please try again' $acyn
+				returning
+				break;;
 		esac
 	done
 
@@ -165,6 +260,8 @@ function fwsave(){
 			*)
 				
 				echo 'Invalid entry' $slyn
+				returning
+				break;;
 		esac
 	done
 
@@ -172,14 +269,7 @@ function fwsave(){
 
 function returning(){
 
-	if [ $? == 0 ]; 
-	then
-		echo 'Sucess!'
-		read -p 'Return to main menu -->'
-	else
-		echo 'Process failed. Check for adequate permissions and try again.' 
-		
-	fi
+	read -p 'Return to main menu -->'
 }
 
 clear
@@ -196,7 +286,7 @@ while true; do
 
 	fi
 
-	echo -e '---------------------------\n1. Firewall setup\n2. Delete rules\n3. Implement Logging\n4. Traffic Status\n5. List fw rules\n6. Save/Load rules\nq. Exit\n---------------------------'
+	echo -e '---------------------------\n1. Firewall setup\n2. Accept/Deny Internet Access\n3. Delete rules\n4. Implement Logging\n5. Traffic Status\n6. List fw rules\n7. Save/Load rules\nq. Exit\n---------------------------'
 	read -p 'Plese enter a number: ' choice
 
 	case $choice in
@@ -204,20 +294,25 @@ while true; do
 		1)
 			fwsetup
 			;;
-		2) 
+
+		2)
+			inetnonet
+			;;
+
+		3) 
 			delete
 			;;
-		3) 
+		4) 
 			logging
 			;;
-		4)
+		5)
 			trafficstat
 			;;
 
-		5)
+		6)
 			listfw
 			;;
-		6)
+		7)
 			fwsave
 			;;
 		q) 
