@@ -2,7 +2,7 @@
 
 #IPTABLES Simplified - created by @mikefak
 #must be ran with sudo permissions, ideal for servers looking to establish basic firewall rules with iptables along with other easy access methods of the utility.
-#Version 1.1
+#Version 1.5
 
 #Info collection and iptaples implementation
 
@@ -22,25 +22,16 @@ function fwsetup () {
 
 		case $dec in
 
-			1) 
-				#option 1, ecomm (20, 21, 80, 443 incoming/outgoing s/d ports, 22 outgoing  )
-				echo "opt1"
-				;;
-			
-			2)
-				#option 2, database (ssh, )
-				echo "opt2"
-				;;
-
-			3)
+			1)
 				#option 3, autosetup
 				echo "opt3"
 				;;
 			
-			4)
+			2)
 				#custom
-				echo "opt4"
-				;;
+				fwautosetup
+				returning
+				break;;
 		esac
 	done
             
@@ -142,25 +133,37 @@ function inetnonet () {
 function delete() {
 
 	#ask to delete all rules
-	echo -e 'WARNING: ANY PREEXISTING IPTABLE CHAINS RULES WILL BE DELETED, PROCEED WITH CAUTION\n'
 
-	read -p "Would you like to delete all pre-existing iptable chain rules? This will not apply to the traffic status (y/n): " dec
+	read -p "What kind of deletion would you like to proceed with? (one/multi/all) " dec
+	
 	while true; do
 
 		case $dec in
 
-			y)
-				iptables -F
+			one)
+
+				#call onedel funct
 				returning
 				break;;
-			n)
-				echo 'Exiting...'
+
+			multi)
+
+				#call multidel funct
+				returning
+				break;;
+
+			all)
+				
+				#call alldel funct
+				returning
 				break;;
 
 			*)
 				echo 'Invalid entry' $dec
 				returning
 				break;;
+
+
 		esac
 	done
 
@@ -278,16 +281,29 @@ while true; do
 
 	if [[ startf -eq 0 ]]
 		then 
-			echo 'Welcome to iptaples simplified'
+			echo ' _____  _______   _________   ______   
+|_   _||_   __ \ |  _   _  |. ____  \  
+  | |    | |__) ||_/ | | \_|| (___ \_| 
+  | |    |  ___/     | |     _.____`.  
+ _| |_  _| |_       _| |_   | \____) | 
+|_____||_____|     |_____|   \______.'
+			echo -e '\t   By: @mikefak'
+
+
 			startf=1
 		else 
 			clear
-			echo 'Anything else?'
-
+			echo ' _____  _______   _________   ______   
+|_   _||_   __ \ |  _   _  |. ____  \  
+  | |    | |__) ||_/ | | \_|| (___ \_| 
+  | |    |  ___/     | |     _.____`.  
+ _| |_  _| |_       _| |_   | \____) | 
+|_____||_____|     |_____|   \______.'
+			echo -e '\t   By: @mikefak'
 	fi
 
-	echo -e '---------------------------\n1. Firewall setup\n2. Accept/Deny Internet Access\n3. Delete rules\n4. Implement Logging\n5. Traffic Status\n6. List fw rules\n7. Save/Load rules\nq. Exit\n---------------------------'
-	read -p 'Plese enter a number: ' choice
+	echo -e '--------------------------------------\n1. Firewall Setup\n2. Accept/Deny Internet Access\n3. Delete Rules\n4. Implement Logging\n5. Traffic Status\n6. List Firewall Rules\n7. Save/Load Rules\nq. Exit\n--------------------------------------'
+	read -p 'Please enter an input: ' choice
 
 	case $choice in
 
@@ -321,7 +337,7 @@ while true; do
 				if [[ savef -eq 0 ]]
 				then 
 
-					read -p 'You have not saved/loaded any rules this session, would you like to save/load before exiting? (y/n): ' syn
+					read -p 'You have not saved/loaded any rules this session, would you like to do so before exiting? (y/n): ' syn
 
 					while true; do
 						case $syn in
